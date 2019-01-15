@@ -178,6 +178,7 @@ class VCPUDriver implements Driver {
                     currentPlayer = HUMAN;
                 }
                 text.setText(getText());
+                s.moveTo(p.x, p.y);
             }
         }
     }

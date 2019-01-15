@@ -61,6 +61,10 @@ public class MyGLSurfaceView extends GLSurfaceView {
         renderer.setWin(winX, winY, texture);
     }
 
+    public void moveTo(int x, int y) {
+        renderer.moveTo(x, y);
+    }
+
     interface SMNode {
         SMNode up(MotionEvent event);
 
@@ -279,17 +283,24 @@ public class MyGLSurfaceView extends GLSurfaceView {
         private int viewUniform;
         private int projectionUniform;
         private int scaleUniform;
+        private int mixUniform;
+        private int lastMove = -1;
 
         void setBoard(int x, int y, int p) {
             if (0 <= p && p <= 2) {
                 board[y * SIZE + x] = (byte) p;
             }
+            lastMove = y * SIZE + x;
         }
 
         void setWin(int winX, int winY, int texture) {
             winPositionX = winX;
             winPositionY = winY;
             winTexture = texture;
+        }
+
+        void moveTo(int x, int y) {
+            eye.setCenter(x + 0.5f - SIZE / 2, y + 0.5f - SIZE / 2);
         }
 
         class Eye {
@@ -331,6 +342,11 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 float eyeY = centerY + d * upY * (float) Math.cos(z);
                 float eyeZ = centerZ + d * (float) Math.sin(z);
                 Matrix.setLookAtM(mat, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+            }
+
+            void setCenter(float x, float y) {
+                this.x = x;
+                this.y = y;
             }
         }
 
@@ -402,6 +418,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
             viewUniform = GLES30.glGetUniformLocation(program, "view");
             projectionUniform = GLES30.glGetUniformLocation(program, "projection");
             scaleUniform = GLES30.glGetUniformLocation(program, "scale");
+            mixUniform = GLES30.glGetUniformLocation(program, "mixColor");
 
 
             int[] buffers = new int[1];
@@ -507,6 +524,11 @@ public class MyGLSurfaceView extends GLSurfaceView {
             for (int i = 0; i < SIZE * SIZE; i++) {
                 int x = i % SIZE - SIZE / 2;
                 int y = i / SIZE - SIZE / 2;
+                if (i == lastMove) {
+                    GLES30.glUniform1f(mixUniform, 0.5f);
+                } else {
+                    GLES30.glUniform1f(mixUniform, 0f);
+                }
                 GLES30.glUniform2f(modelUniform, x, y);
                 GLES30.glUniform1f(scaleUniform, 0.5f);
                 GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textures[board[i]]);
