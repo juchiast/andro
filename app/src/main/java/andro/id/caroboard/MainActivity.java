@@ -42,6 +42,16 @@ public class MainActivity extends AppCompatActivity {
         transaction.addToBackStack(null);
         transaction.commit();
     }
+
+    public void onClickCvC(View view) {
+        callback = new CvCDriver();
+
+        Fragment newFragment = new CaroBoardFragment();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
 }
 
 interface Driver {
@@ -154,5 +164,49 @@ class PvPDriver implements Driver {
             return true;
         }
         return false;
+    }
+}
+
+class CvCDriver implements Driver {
+    private final Board board;
+    private int currentPlayer;
+    private final MCTS ai;
+
+    CvCDriver() {
+        board = new Board();
+        currentPlayer = 1;
+        ai = new MCTS(1);
+    }
+
+    @Override
+    public void call(int x, int y, MyGLSurfaceView s) {
+        if (board.result() != Board.IN_PROGRESS) {
+            return;
+        }
+        new Think(s).execute();
+    }
+
+    private class Think extends AsyncTask<Void, Void, Position> {
+        private final MyGLSurfaceView s;
+
+        Think(MyGLSurfaceView s) {
+            this.s = s;
+        }
+
+        @Override
+        protected Position doInBackground(Void... voids) {
+            return ai.findNextMove(board, currentPlayer);
+        }
+
+        @Override
+        protected void onPostExecute(Position p) {
+            if (0 == board.adj[p.x][p.y]) {
+                board.adj[p.x][p.y] = currentPlayer;
+                s.setBoard(p.x, p.y, currentPlayer == -1 ? 2 : currentPlayer);
+                if (!PvPDriver.setAndCheckWin(board, currentPlayer, s)) {
+                    currentPlayer *= -1;
+                }
+            }
+        }
     }
 }
