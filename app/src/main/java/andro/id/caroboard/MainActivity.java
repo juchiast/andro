@@ -8,8 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
-import javax.microedition.khronos.opengles.GL;
-
 import andro.id.caroboard.ai.Board;
 import andro.id.caroboard.ai.MCTS;
 import andro.id.caroboard.ai.Position;
@@ -73,11 +71,16 @@ class VCPUDriver implements Driver {
 
     @Override
     public void call(int x, int y, MyGLSurfaceView s) {
+        if (board.result() != Board.IN_PROGRESS) {
+            return;
+        }
         if (0 == board.adj[x][y] && HUMAN == currentPlayer) {
             board.adj[x][y] = HUMAN;
             s.setBoard(x, y, HUMAN == -1 ? 2 : HUMAN);
-            currentPlayer = CPU;
-            new Think(s).execute();
+            if (!PvPDriver.setAndCheckWin(board, HUMAN, s)) {
+                currentPlayer = CPU;
+                new Think(s).execute();
+            }
         }
     }
 
@@ -92,17 +95,17 @@ class VCPUDriver implements Driver {
 
         @Override
         protected Position doInBackground(Void... voids) {
-            Log.d("duy", "thinking");
             return ai.findNextMove(board, CPU);
         }
 
         @Override
         protected void onPostExecute(Position p) {
-            Log.d("duy", "thinking finish");
             if (0 == board.adj[p.x][p.y] && CPU == currentPlayer) {
                 board.adj[p.x][p.y] = CPU;
                 s.setBoard(p.x, p.y, CPU == -1 ? 2 : CPU);
-                currentPlayer = HUMAN;
+                if (!PvPDriver.setAndCheckWin(board, CPU, s)) {
+                    currentPlayer = HUMAN;
+                }
             }
         }
     }
@@ -119,10 +122,37 @@ class PvPDriver implements Driver {
 
     @Override
     public void call(int x, int y, MyGLSurfaceView s) {
+        if (board.result() != Board.IN_PROGRESS) {
+            return;
+        }
         if (0 == board.adj[x][y]) {
             board.adj[x][y] = currentPlayer;
             s.setBoard(x, y, currentPlayer == -1 ? 2 : currentPlayer);
+            setAndCheckWin(board, currentPlayer, s);
             currentPlayer *= -1;
         }
+    }
+
+    static boolean setAndCheckWin(Board board, int lastPlayer, MyGLSurfaceView s) {
+        if (board.result() != Board.IN_PROGRESS && board.result() != Board.DRAW) {
+            int winX = (board.p1.x + board.p2.x) / 2;
+            int winY = (board.p1.y + board.p2.y) / 2;
+
+            int yy = board.p1.x < board.p2.x ? board.p1.y : board.p2.y;
+            int direction;
+            if (winY == board.p1.y) {
+                direction = 2;
+            } else if (winX == board.p1.x) {
+                direction = 0;
+            } else if (yy < winY) {
+                direction = 3;
+            } else {
+                direction = 1;
+            }
+            int texture = 3 + direction + 4 * (lastPlayer == -1 ? 1 : 0);
+            s.setWin(winX, winY, texture);
+            return true;
+        }
+        return false;
     }
 }

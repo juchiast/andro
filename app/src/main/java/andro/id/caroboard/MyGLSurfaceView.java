@@ -53,6 +53,10 @@ public class MyGLSurfaceView extends GLSurfaceView {
         renderer.setBoard(x, y, p);
     }
 
+    public void setWin(int winX, int winY, int texture) {
+        renderer.setWin(winX, winY, texture);
+    }
+
     interface SMNode {
         SMNode up(MotionEvent event);
 
@@ -267,10 +271,21 @@ public class MyGLSurfaceView extends GLSurfaceView {
     }
 
     class MyGLRenderer implements GLSurfaceView.Renderer {
+        private int modelUniform;
+        private int viewUniform;
+        private int projectionUniform;
+        private int scaleUniform;
+
         void setBoard(int x, int y, int p) {
             if (0 <= p && p <= 2) {
                 board[y * SIZE + x] = (byte) p;
             }
+        }
+
+        void setWin(int winX, int winY, int texture) {
+            winPositionX = winX;
+            winPositionY = winY;
+            winTexture = texture;
         }
 
         class Eye {
@@ -326,7 +341,11 @@ public class MyGLSurfaceView extends GLSurfaceView {
         private Eye eye;
         private final Context context;
 
-        private final int[] textures = new int[3];
+        private int winPositionX = -1;
+        private int winPositionY = -1;
+        private int winTexture = -1;
+
+        private final int[] textures = new int[11];
         private int program;
 
         private final float[] projectionMatrix = new float[16];
@@ -369,11 +388,17 @@ public class MyGLSurfaceView extends GLSurfaceView {
             int fragment = GLES30.glCreateShader(GLES30.GL_FRAGMENT_SHADER);
             GLES30.glShaderSource(fragment, getResourceString(context, R.raw.fragment));
             GLES30.glCompileShader(fragment);
-            int program = GLES30.glCreateProgram();
+            program = GLES30.glCreateProgram();
             GLES30.glAttachShader(program, vertex);
             GLES30.glAttachShader(program, fragment);
             GLES30.glLinkProgram(program);
             GLES30.glUseProgram(program);
+
+            modelUniform = GLES30.glGetUniformLocation(program, "model");
+            viewUniform = GLES30.glGetUniformLocation(program, "view");
+            projectionUniform = GLES30.glGetUniformLocation(program, "projection");
+            scaleUniform = GLES30.glGetUniformLocation(program, "scale");
+
 
             int[] buffers = new int[1];
             GLES30.glGenBuffers(1, buffers, 0);
@@ -392,16 +417,21 @@ public class MyGLSurfaceView extends GLSurfaceView {
             GLES30.glVertexAttribPointer(0, 2, GLES30.GL_FLOAT, false, 0, 0);
 
 
-            this.program = program;
-
-            GLES30.glGenTextures(3, textures, 0);
+            GLES30.glGenTextures(11, textures, 0);
             loadTexture(textures[0], R.drawable.c0);
             loadTexture(textures[1], R.drawable.c1);
             loadTexture(textures[2], R.drawable.c2);
+            loadTexture(textures[3], R.drawable.w11);
+            loadTexture(textures[4], R.drawable.w12);
+            loadTexture(textures[5], R.drawable.w13);
+            loadTexture(textures[6], R.drawable.w14);
+            loadTexture(textures[7], R.drawable.w21);
+            loadTexture(textures[8], R.drawable.w22);
+            loadTexture(textures[9], R.drawable.w23);
+            loadTexture(textures[10], R.drawable.w24);
 
             eye.getViewMatrix(viewMatrix);
-            int view = GLES30.glGetUniformLocation(program, "view");
-            GLES30.glUniformMatrix4fv(view, 1, false, viewMatrix, 0);
+            GLES30.glUniformMatrix4fv(viewUniform, 1, false, viewMatrix, 0);
         }
 
 
@@ -446,8 +476,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
             viewport[3] = height;
             float ratio = (float) width / height;
             Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, 1, -1, 3, 1000);
-            int projection = GLES30.glGetUniformLocation(this.program, "projection");
-            GLES30.glUniformMatrix4fv(projection, 1, false, projectionMatrix, 0);
+            GLES30.glUniformMatrix4fv(projectionUniform, 1, false, projectionMatrix, 0);
         }
 
         private long time = 0;
@@ -460,8 +489,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 long dt = System.currentTimeMillis() - time;
                 eye.applyVelocity(vX, vY, vD, vTh, vZ, dt);
                 eye.getViewMatrix(viewMatrix);
-                int view = GLES30.glGetUniformLocation(program, "view");
-                GLES30.glUniformMatrix4fv(view, 1, false, viewMatrix, 0);
+                GLES30.glUniformMatrix4fv(viewUniform, 1, false, viewMatrix, 0);
                 time += dt;
                 vX += accelerateX * dt / 1000;
                 vY += accelerateY * dt / 1000;
@@ -472,12 +500,19 @@ public class MyGLSurfaceView extends GLSurfaceView {
             GLES30.glClearColor(0, 0, 0, 1);
             GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
 
-            int model = GLES30.glGetUniformLocation(this.program, "model");
             for (int i = 0; i < SIZE * SIZE; i++) {
                 int x = i % SIZE - SIZE / 2;
                 int y = i / SIZE - SIZE / 2;
-                GLES30.glUniform2f(model, x, y);
+                GLES30.glUniform2f(modelUniform, x, y);
+                GLES30.glUniform1f(scaleUniform, 0.5f);
                 GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textures[board[i]]);
+                GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6);
+            }
+
+            if (winTexture != -1) {
+                GLES30.glUniform2f(modelUniform, winPositionX - SIZE / 2 - 2, winPositionY - SIZE / 2 - 2);
+                GLES30.glUniform1f(scaleUniform, 2.5f);
+                GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textures[winTexture]);
                 GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6);
             }
         }
