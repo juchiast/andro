@@ -1,5 +1,7 @@
 package andro.id.caroboard;
 
+import android.content.res.AssetManager;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -7,6 +9,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+
+import java.util.Locale;
 
 import andro.id.caroboard.ai.Board;
 import andro.id.caroboard.ai.MCTS;
