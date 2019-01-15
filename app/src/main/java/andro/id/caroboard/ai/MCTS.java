@@ -1,6 +1,8 @@
 package andro.id.caroboard.ai;
 
 
+import android.util.Log;
+
 import java.util.List;
 
 /**
@@ -30,10 +32,6 @@ public class MCTS {
             --cnt;
             // Phase 1 - Selection
             Node promisingNode = selectPromisingNode(rootNode);
-            // promisingNode.state.board.print();
-            // System.out.println(String.valueOf(promisingNode.state.playerNo) + ". " +
-            //         String.valueOf(promisingNode.state.winScore) + " " +
-            //         String.valueOf(promisingNode.state.visitCount));
             // Phase 2 - Expansion
             if (promisingNode.state.board.result() == Board.IN_PROGRESS)
                 expandNode(promisingNode);
@@ -46,6 +44,7 @@ public class MCTS {
             // Phase 4 - Update
             backPropogation(nodeToExplore, playoutResult);
         }
+        Log.i("Number of playout", String.valueOf(getNoOfSimulatePlayout() - cnt));
 
         Node winnerNode = rootNode.getChildWithMaxScore();
         return rootNode.state.board.diff(winnerNode.state.board);

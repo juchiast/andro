@@ -102,6 +102,8 @@ public class Board {
                     nextPositions.add(new Position(i, j));
             }
         }
+        if (nextPositions.size() == 0)
+            nextPositions.add(new Position((BOARD_SIZE - 1) / 2, (BOARD_SIZE - 1) / 2));
         return nextPositions;
     }
 
