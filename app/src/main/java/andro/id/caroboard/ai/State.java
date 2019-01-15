@@ -50,7 +50,7 @@ public class State {
     }
 
     public void randomPlay() {
-        List<Position> availablePositions = this.board.getEmptyPositions();
+        List<Position> availablePositions = this.board.nextPositions();
         int totalPossibilities = availablePositions.size();
         int selectRandom = (int) (Math.random() * totalPossibilities);
         this.board.performMove(this.playerNo, availablePositions.get(selectRandom));

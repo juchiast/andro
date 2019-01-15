@@ -85,9 +85,11 @@ public class Board {
     }
 
     boolean checkedNear(int x, int y) {
-        for (int i = x - 1; i <= x + 1; ++i)
-            for (int j = y - 1; j <= y + 1; ++j)
-                if (inside(i, j) && adj[i][j] != 0)
+        int minx = Math.max(0, x - 1), maxx = Math.min(x + 1, BOARD_SIZE - 1);
+        int miny = Math.max(0, y - 1), maxy = Math.min(y + 1, BOARD_SIZE - 1);
+        for (int i = minx; i <= maxx; ++i)
+            for (int j = miny; j <= maxy; ++j)
+                if (adj[i][j] != 0)
                     return true;
         return false;
     }
