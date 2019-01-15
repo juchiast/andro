@@ -31,7 +31,7 @@ public class MyVideoView extends VideoView {
         if (delta < 0)
             delta += lenVideo;
 
-        this.seekTo((this.getCurrentPosition() + delta) % this.getDuration());
+        this.seekTo((this.getCurrentPosition() + delta) % lenVideo;
     }
 
     @Override
