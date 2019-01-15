@@ -24,6 +24,15 @@ public class MyVideoView extends VideoView {
         super(context);
     }
 
+    public void rotate(double radian) {
+        int lenVideo = this.getDuration();
+        int delta = (int)(radian / (2 * Math.PI)) * lenVideo;
+        delta %= lenVideo;
+        if (delta < 0)
+            delta += lenVideo;
+
+        this.seekTo((this.getCurrentPosition() + delta) % this.getDuration());
+    }
 
     @Override
     public void setVideoURI(Uri uri) {
