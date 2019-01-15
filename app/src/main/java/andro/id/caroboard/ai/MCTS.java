@@ -10,25 +10,27 @@ public class MCTS {
     public int level;
 
     public MCTS(int level) {
-        ///TODO
-        this.level = 1;
+        this.level = level;
     }
 
-    private int getMillisForCurrentLevel() {
-        return 2000 * this.level;
+    private int getNoOfSimulatePlayout() {
+        return 10000 * this.level;
     }
 
     public Position findNextMove(Board board, int playerNo) {
-        long start = System.currentTimeMillis();
-        long end = start + getMillisForCurrentLevel();
-
         Node rootNode = new Node();
         rootNode.state.board = board;
         rootNode.state.playerNo = -playerNo;
 
-        while (System.currentTimeMillis() < end) {
+        int cnt = getNoOfSimulatePlayout();
+        while (cnt >= 0) {
+            --cnt;
             // Phase 1 - Selection
             Node promisingNode = selectPromisingNode(rootNode);
+            // promisingNode.state.board.print();
+            // System.out.println(String.valueOf(promisingNode.state.playerNo) + ". " +
+            //         String.valueOf(promisingNode.state.winScore) + " " +
+            //         String.valueOf(promisingNode.state.visitCount));
             // Phase 2 - Expansion
             if (promisingNode.state.board.result() == Board.IN_PROGRESS)
                 expandNode(promisingNode);
@@ -100,7 +102,6 @@ public class MCTS {
             tempState.randomPlay();
             boardStatus = tempState.board.result();
         }
-
         return boardStatus;
     }
 
