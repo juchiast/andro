@@ -4,9 +4,11 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:paddingTop="15dp"
+        android:paddingLeft="15dp"
         android:textColor="#FFFFFF"
         android:id="@+id/game_text"
-        android:textSize="15dp"
+        android:textSize="20sp"
         android:fontFamily="@font/font"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
