@@ -8,7 +8,6 @@ import java.util.List;
  */
 public class MCTS {
     public int level;
-    private final int[] thinkTime = new int[] {5000, 10000, 15000};
 
     public MCTS(int level) {
         this.level = level;
