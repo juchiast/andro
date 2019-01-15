@@ -1,5 +1,6 @@
 package andro.id.caroboard;
 
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,16 +18,23 @@ import andro.id.caroboard.ai.Position;
 
 public class MainActivity extends AppCompatActivity {
     public static Driver callback = new EmptyDriver();
+    MyVideoView background;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         hideSystemUI();
         setContentView(R.layout.activity_main);
-        MyVideoView background = findViewById(R.id.background_video);
+        background = findViewById(R.id.background_video);
         Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.stars);
         background.setVideoURI(uri);
         background.setTag(19981007);
+        background.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.start();
+            }
+        });
         background.start();
         getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, new MenuFragment()).commit();
     }
