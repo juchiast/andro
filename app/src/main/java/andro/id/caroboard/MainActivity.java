@@ -1,7 +1,5 @@
 package andro.id.caroboard;
 
-import android.content.res.AssetManager;
-import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -10,8 +8,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.TextView;
 
-import java.util.Locale;
+import org.w3c.dom.Text;
 
 import andro.id.caroboard.ai.Board;
 import andro.id.caroboard.ai.MCTS;
@@ -40,40 +39,27 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, new MenuFragment()).commit();
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        background.start();
+    void addFragment() {
+        Fragment newFragment = new CaroBoardFragment();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     public void onClickPvP(View view) {
-        callback = new PvPDriver();
-
-        Fragment newFragment = new CaroBoardFragment();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, newFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        addFragment();
+        callback = new PvPDriver(this);
     }
 
     public void onClickVCPU(View view) {
+        addFragment();
         callback = new VCPUDriver();
-
-        Fragment newFragment = new CaroBoardFragment();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, newFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
     }
 
     public void onClickCvC(View view) {
+        addFragment();
         callback = new CvCDriver();
-
-        Fragment newFragment = new CaroBoardFragment();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, newFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
     }
 
 
@@ -98,16 +84,26 @@ public class MainActivity extends AppCompatActivity {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
+
+    public void boardReady(View view) {
+        callback.boardReady(view);
+    }
 }
 
 interface Driver {
     void call(int x, int y, MyGLSurfaceView s);
+
+    void boardReady(View view);
 }
 
 class EmptyDriver implements Driver {
 
     @Override
     public void call(int x, int y, MyGLSurfaceView s) {
+    }
+
+    @Override
+    public void boardReady(View view) {
     }
 }
 
@@ -118,6 +114,7 @@ class VCPUDriver implements Driver {
 
     private final Board board;
     private int currentPlayer;
+    private TextView text;
 
     VCPUDriver() {
         currentPlayer = HUMAN;
@@ -137,6 +134,24 @@ class VCPUDriver implements Driver {
                 currentPlayer = CPU;
                 new Think(s).execute();
             }
+            text.setText(getText());
+        }
+    }
+
+    @Override
+    public void boardReady(View view) {
+        text = view.findViewById(R.id.game_text);
+        text.setText(getText());
+    }
+
+    private String getText() {
+        int res = board.result();
+        if (res == Board.IN_PROGRESS) {
+            return currentPlayer == HUMAN ? "Human Turn" : "Thinking...";
+        } else if (res == Board.DRAW) {
+            return "Draw!";
+        } else {
+            return currentPlayer == HUMAN ? "Human wins" : "CPU Wins";
         }
     }
 
@@ -162,6 +177,7 @@ class VCPUDriver implements Driver {
                 if (!PvPDriver.setAndCheckWin(board, CPU, s)) {
                     currentPlayer = HUMAN;
                 }
+                text.setText(getText());
             }
         }
     }
@@ -169,10 +185,13 @@ class VCPUDriver implements Driver {
 
 class PvPDriver implements Driver {
     private final Board board;
+    private final MainActivity main;
     private int currentPlayer;
+    private TextView text;
 
-    PvPDriver() {
+    PvPDriver(MainActivity main) {
         currentPlayer = 1;
+        this.main = main;
         board = new Board();
     }
 
@@ -184,9 +203,28 @@ class PvPDriver implements Driver {
         if (0 == board.adj[x][y]) {
             board.adj[x][y] = currentPlayer;
             s.setBoard(x, y, currentPlayer == -1 ? 2 : currentPlayer);
-            setAndCheckWin(board, currentPlayer, s);
-            currentPlayer *= -1;
+            if (!setAndCheckWin(board, currentPlayer, s)) {
+                currentPlayer *= -1;
+            }
+            text.setText(getText());
         }
+    }
+
+    String getText() {
+        int res = board.result();
+        if (board.result() == Board.IN_PROGRESS) {
+            return currentPlayer == -1 ? "X Turn" : "O Turn";
+        } else if (res == Board.DRAW) {
+            return "Draw!";
+        } else {
+            return res == -1 ? "X Wins" : "O Win";
+        }
+    }
+
+    @Override
+    public void boardReady(View view) {
+        text = view.findViewById(R.id.game_text);
+        text.setText(getText());
     }
 
     static boolean setAndCheckWin(Board board, int lastPlayer, MyGLSurfaceView s) {
@@ -217,11 +255,14 @@ class CvCDriver implements Driver {
     private final Board board;
     private int currentPlayer;
     private final MCTS ai;
+    private TextView text;
+    private boolean thinking;
 
     CvCDriver() {
         board = new Board();
         currentPlayer = 1;
         ai = new MCTS(1);
+        thinking = false;
     }
 
     @Override
@@ -229,7 +270,33 @@ class CvCDriver implements Driver {
         if (board.result() != Board.IN_PROGRESS) {
             return;
         }
+        if (thinking) {
+            return;
+        }
+        thinking = true;
+        text.setText(getText());
         new Think(s).execute();
+    }
+
+    @Override
+    public void boardReady(View view) {
+        text = view.findViewById(R.id.game_text);
+        text.setText(getText());
+    }
+
+    private String getText() {
+        int res = board.result();
+        if (res == Board.IN_PROGRESS) {
+            if (thinking) {
+                return currentPlayer == -1 ? "X is thinking" : "O is thinking";
+            } else {
+                return "Click to continue";
+            }
+        } else if (res == Board.DRAW) {
+            return "Draw!";
+        } else {
+            return currentPlayer == -1? "X wins" : "O wins";
+        }
     }
 
     private class Think extends AsyncTask<Void, Void, Position> {
@@ -246,12 +313,14 @@ class CvCDriver implements Driver {
 
         @Override
         protected void onPostExecute(Position p) {
+            thinking = false;
             if (0 == board.adj[p.x][p.y]) {
                 board.adj[p.x][p.y] = currentPlayer;
                 s.setBoard(p.x, p.y, currentPlayer == -1 ? 2 : currentPlayer);
                 if (!PvPDriver.setAndCheckWin(board, currentPlayer, s)) {
                     currentPlayer *= -1;
                 }
+                text.setText(getText());
             }
         }
     }
