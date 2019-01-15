@@ -14,7 +14,7 @@ public class MCTS {
     }
 
     private int getNoOfSimulatePlayout() {
-        return 10000 * this.level;
+        return 5000 * this.level;
     }
 
     public Position findNextMove(Board board, int playerNo) {
