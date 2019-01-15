@@ -8,14 +8,14 @@ import java.util.List;
  */
 public class MCTS {
     public int level;
-    private final int[] thinkTime = new int[] {0, 5000, 100000, 15000};
+    private final int[] thinkTime = new int[] {0, 10000, 150000, 20000};
 
     public MCTS(int level) {
         this.level = level;
     }
 
     private int getNoOfSimulatePlayout() {
-        return 5000 * this.level;
+        return 8000 * this.level;
     }
 
     public Position findNextMove(Board board, int playerNo) {
