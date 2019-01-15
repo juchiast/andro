@@ -320,7 +320,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
         // 0:    c0.png
         // 1: o  c1.png
         // 2: x  c2.png
-        private final int SIZE = 20;
+        private final int SIZE = 15;
         private final byte[] board = new byte[SIZE * SIZE];
 
         private Eye eye;
@@ -469,7 +469,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 if (vY * accelerateY >= 0) vY = accelerateY = 0;
             }
 
-            GLES30.glClearColor(1, 1, 1, 1);
+            GLES30.glClearColor(0, 0, 0, 1);
             GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
 
             int model = GLES30.glGetUniformLocation(this.program, "model");
