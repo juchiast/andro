@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class MCTS {
     public int level;
+    private final int[] thinkTime = new int[] {0, 5000, 100000, 15000};
 
     public MCTS(int level) {
         this.level = level;
@@ -18,12 +19,14 @@ public class MCTS {
     }
 
     public Position findNextMove(Board board, int playerNo) {
+        long end = System.currentTimeMillis() + thinkTime[level];
+
         Node rootNode = new Node();
         rootNode.state.board = board;
         rootNode.state.playerNo = -playerNo;
 
         int cnt = getNoOfSimulatePlayout();
-        while (cnt >= 0) {
+        while (cnt >= 0 && System.currentTimeMillis() < end) {
             --cnt;
             // Phase 1 - Selection
             Node promisingNode = selectPromisingNode(rootNode);
