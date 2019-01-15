@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 
 import andro.id.caroboard.ai.Board;
@@ -19,10 +18,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        hideSystemUI();
         setContentView(R.layout.activity_main);
-
-        MyVideoView background =  findViewById(R.id.background_video);
-        Uri uri = Uri.parse("android.resource://"+ getPackageName() +"/"+R.raw.stars);
+        MyVideoView background = findViewById(R.id.background_video);
+        Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.stars);
         background.setVideoURI(uri);
         background.setTag(19981007);
         background.start();
@@ -57,6 +56,29 @@ public class MainActivity extends AppCompatActivity {
         transaction.replace(R.id.fragment_container, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();
+    }
+
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            hideSystemUI();
+        }
+    }
+
+    private void hideSystemUI() {
+        // Enables regular immersive mode.
+        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
+        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                          View.SYSTEM_UI_FLAG_IMMERSIVE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 }
 
