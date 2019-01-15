@@ -3,6 +3,7 @@ package andro.id.caroboard;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
@@ -33,6 +34,9 @@ public class MyGLSurfaceView extends GLSurfaceView {
     public MyGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setEGLContextClientVersion(3);
+        setZOrderOnTop(true);
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        getHolder().setFormat(PixelFormat.RGBA_8888);
         this.context = context;
         renderer = new MyGLRenderer(context);
         setRenderer(renderer);
@@ -497,7 +501,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 if (vY * accelerateY >= 0) vY = accelerateY = 0;
             }
 
-            GLES30.glClearColor(0, 0, 0, 1);
+            GLES30.glClearColor(0, 0, 0, 0);
             GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
 
             for (int i = 0; i < SIZE * SIZE; i++) {

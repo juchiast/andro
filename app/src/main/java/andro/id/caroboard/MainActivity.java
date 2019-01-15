@@ -25,10 +25,10 @@ public class MainActivity extends AppCompatActivity {
         Uri uri = Uri.parse("android.resource://"+ getPackageName() +"/"+R.raw.stars);
         background.setVideoURI(uri);
         background.setTag(19981007);
-        // getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, new MenuFragment()).commit();
+        background.start();
+        getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, new MenuFragment()).commit();
     }
 
-    /*
     public void onClickPvP(View view) {
         callback = new PvPDriver();
 
@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
         transaction.addToBackStack(null);
         transaction.commit();
     }
-    */
 }
 
 interface Driver {
