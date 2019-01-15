@@ -49,9 +49,7 @@ public class MCTS {
         }
 
         Node winnerNode = rootNode.getChildWithMaxScore();
-        // winnerNode.state.board.print();
-        return new Position(0, 0); //rootNode.state.board.diff(winnerNode.state.board);
-        // return winnerNode.state.board;
+        return rootNode.state.board.diff(winnerNode.state.board);
     }
 
     private Node selectPromisingNode(Node rootNode) {
