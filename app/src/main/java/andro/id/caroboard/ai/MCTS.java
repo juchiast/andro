@@ -8,7 +8,6 @@ import java.util.List;
  */
 public class MCTS {
     public int level;
-    private int opponent;
 
     public MCTS(int level) {
         ///TODO
@@ -23,18 +22,13 @@ public class MCTS {
         long start = System.currentTimeMillis();
         long end = start + getMillisForCurrentLevel();
 
-        opponent = -playerNo;
         Node rootNode = new Node();
         rootNode.state.board = board;
-        rootNode.state.playerNo = opponent;
+        rootNode.state.playerNo = -playerNo;
 
         while (System.currentTimeMillis() < end) {
             // Phase 1 - Selection
             Node promisingNode = selectPromisingNode(rootNode);
-            // promisingNode.state.board.print();
-            // System.out.println(String.valueOf(promisingNode.state.playerNo) + ". " +
-            //         String.valueOf(promisingNode.state.winScore) + " " +
-            //         String.valueOf(promisingNode.state.visitCount));
             // Phase 2 - Expansion
             if (promisingNode.state.board.result() == Board.IN_PROGRESS)
                 expandNode(promisingNode);
@@ -88,7 +82,6 @@ public class MCTS {
     private void expandNode(Node node) {
         List<State> possibleStates = node.state.getNextStates();
         for (int i = 0; i < possibleStates.size(); ++i) {
-            System.out.println("VNNN");
             State state = possibleStates.get(i);
             Node newNode = new Node(state);
             newNode.parent = node;
@@ -98,8 +91,6 @@ public class MCTS {
     }
 
     private int simulateRandomPlayout(Node node) {
-        // node.state.board.print();
-        // System.out.println("TEST1");
         Node tempNode = new Node(node);
         State tempState = tempNode.state;
         int boardStatus = tempState.board.result();
@@ -110,23 +101,17 @@ public class MCTS {
             boardStatus = tempState.board.result();
         }
 
-        // tempState.board.print();
-        // System.out.println(String.valueOf(boardStatus) + " TEST2");
         return boardStatus;
     }
 
     private void backPropogation(Node nodeToExplore, int playoutResult) {
         Node tempNode = nodeToExplore;
         while (tempNode != null) {
-            // tempNode.state.board.print();
-            // System.out.println("-----");
             tempNode.state.incVisitCnt();
             if (tempNode.state.playerNo == playoutResult) {
-                // System.out.println("---");
                 tempNode.state.addScore(1);
             }
             tempNode = tempNode.parent;
         }
-        // System.out.println("qwewe");
     }
 }
